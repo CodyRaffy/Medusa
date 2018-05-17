@@ -6,7 +6,8 @@ namespace Medusa
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var key = DataImporter.ImportKey();
+            Console.WriteLine($"The Key has {key.Answers.Count} answers");
         }
     }
 }
