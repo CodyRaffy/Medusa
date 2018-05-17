@@ -12,10 +12,10 @@ namespace Medusa
 
             var testResults = DataImporter.ImportTestData();
 
-            foreach (var testResult in testResults.OrderBy(i => i.GradeLevel))
+            foreach (var testResult in testResults.OrderBy(i => i.Grade))
             {
                 if (testResult.School == "ZZJAEC")
-                    Console.WriteLine($"{testResult.Name}, {testResult.Gender} - Grade {testResult.GradeLevel} got {testResult.GetCorrectAnswers(key)} questions correct");
+                    Console.WriteLine($"{testResult.Name}, {testResult.Gender} - Grade {testResult.Grade} got {testResult.GetCorrectAnswers(key)} questions correct");
             }
         }
     }

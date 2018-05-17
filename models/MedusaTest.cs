@@ -29,6 +29,15 @@ namespace Medusa
         public string Gender { get; set; }
 
         public string GradeLevel { get; set; }
+        public int Grade
+        {
+            get
+            {
+                int grade = 0;
+                int.TryParse(GradeLevel, out grade);
+                return grade;
+            }
+        }
 
         public List<String> Answers { get; set; }
 
