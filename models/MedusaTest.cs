@@ -5,16 +5,18 @@ namespace Medusa
 {
     public class MedusaTest
     {
-        public MedusaTest(string school, List<string> inputLine)
+        public MedusaTest(List<string> inputLine)
         {
-            School = school;
-            Gender = inputLine[0];
-            Name = inputLine[1];
+            Name = inputLine[0];
+            Gender = inputLine[1];
             GradeLevel = inputLine[2];
             Subject = inputLine[3];
+            School = inputLine[4];
+            Teacher = inputLine[5];
+
             Answers = new List<string>();
 
-            for (var i = 4; i < inputLine.Count; i++)
+            for (var i = 6; i < inputLine.Count; i++)
             {
                 Answers.Add(inputLine[i]);
             }
@@ -29,6 +31,8 @@ namespace Medusa
         public string Gender { get; set; }
 
         public string GradeLevel { get; set; }
+
+        public string Teacher { get; set; }
         public int Grade
         {
             get
