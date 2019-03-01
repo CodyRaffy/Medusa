@@ -7,6 +7,9 @@ namespace Medusa
 {
     class Program
     {
+        private static readonly string BaseReportPath = @"C:\Temp\\Medusa\";
+        private static readonly Dictionary<int, string> NationalAverage = new Dictionary<int, string>();
+
         static void Main(string[] args)
         {
             var key = DataImporter.ImportKey();
@@ -14,6 +17,51 @@ namespace Medusa
 
             var testResults = DataImporter.ImportTestData();
 
+            GenerateTestSummaryReport(key, testResults);
+            SetNationalAverages(testResults, key);
+
+            var schoolGroups = testResults.GroupBy(i => i.School);
+            foreach (var schoolGroup in schoolGroups)
+            {
+                GenerateSchoolReport(key, schoolGroup.Key, schoolGroup.ToList());
+            }
+        }
+
+        private static void SetNationalAverages(List<MedusaTest> testResults, MedusaKey key)
+        {
+            var gradeGroups = testResults.GroupBy(i => i.Grade);
+            foreach (var gradeGroup in gradeGroups)
+            {
+                NationalAverage.Add(gradeGroup.Key, gradeGroup.Average(i => i.GetCorrectAnswers(key)).ToString("F1"));
+            }
+        }
+
+        private static void GenerateSchoolReport(MedusaKey key, string school, List<MedusaTest> testResults)
+        {
+            var filename = $"{BaseReportPath}//{school}_MedusaReport.csv";
+
+            using (StreamWriter sw = new StreamWriter(filename))
+            {
+                // Header
+                sw.WriteLine("Student,Grade,Gender,Teacher,Raw Score,National Average,Award");
+
+                var sorted = testResults
+                    .OrderBy(i => i.Grade)
+                    .ThenBy(i => i.GetCorrectAnswers(key))
+                    .ThenBy(i => i.Name)
+                    .ToList();
+
+                foreach (var tr in sorted)
+                {
+                    var nationalAvg = NationalAverage[tr.Grade];
+                    string award = "N/A";
+                    sw.WriteLine($"{tr.Name},{tr.Grade},{tr.Gender},{tr.Teacher},{tr.GetCorrectAnswers(key)},{nationalAvg},{award}");
+                }
+            }
+        }
+
+        private static void GenerateTestSummaryReport(MedusaKey key, List<MedusaTest> testResults)
+        {
             var perfecto = testResults.Where(i => i.GetCorrectAnswers(key) >= 39);
 
             foreach (var person in perfecto)
@@ -26,13 +74,13 @@ namespace Medusa
                 .Where(i => i.Grade == 6 || i.Grade == 7 || i.Grade == 8)
                 .ToList();
 
-            var ninthGradTestResults = testResults.Where(i => i.Grade == 9).ToList();
+            var ninthGradeTestResults = testResults.Where(i => i.Grade == 9).ToList();
             var tenthGradeTestResults = testResults.Where(i => i.Grade == 10).ToList();
             var eleventhGradeTestResults = testResults.Where(i => i.Grade == 11).ToList();
             var twelvthGradeTestResults = testResults.Where(i => i.Grade == 12).ToList();
 
             var middleSchoolReportList = CreateReportItemList(middleSchoolTestResults, key);
-            var ninthGradeReportList = CreateReportItemList(ninthGradTestResults, key);
+            var ninthGradeReportList = CreateReportItemList(ninthGradeTestResults, key);
             var tenthGradeReportList = CreateReportItemList(tenthGradeTestResults, key);
             var eleventhGradeReportList = CreateReportItemList(eleventhGradeTestResults.ToList(), key);
             var twelvthGradeReportList = CreateReportItemList(twelvthGradeTestResults.ToList(), key);
@@ -40,7 +88,7 @@ namespace Medusa
 
             var all = CreateReportItemList(testResults, key);
 
-            using (StreamWriter sw = new StreamWriter("C:\\Temp\\Medusa\\Distribution.csv"))
+            using (StreamWriter sw = new StreamWriter($"{BaseReportPath}\\Distribution.csv"))
             {
                 var totalCount = middleSchoolReportList.Count;
                 var header = "# EX,# A.L.,PCT";
@@ -50,12 +98,42 @@ namespace Medusa
                 {
                     sw.Write($"{i},");
                     WriteItemFromList(sw, middleSchoolReportList, i, middleSchoolTestResults.Count);
-                    WriteItemFromList(sw, ninthGradeReportList, i, ninthGradTestResults.Count);
+                    WriteItemFromList(sw, ninthGradeReportList, i, ninthGradeTestResults.Count);
                     WriteItemFromList(sw, tenthGradeReportList, i, tenthGradeTestResults.Count);
                     WriteItemFromList(sw, eleventhGradeReportList, i, eleventhGradeTestResults.Count);
                     WriteItemFromList(sw, twelvthGradeReportList, i, twelvthGradeTestResults.Count);
                     WriteItemFromList(sw, allReportList, i, testResults.Count);
                     sw.WriteLine("");
+                }
+
+                // Write Totals
+                sw.Write($",,Total,{middleSchoolTestResults.Count},,");
+                sw.Write($"Total,{ninthGradeTestResults.Count},,");
+                sw.Write($"Total,{tenthGradeTestResults.Count},,");
+                sw.Write($"Total,{eleventhGradeTestResults.Count},,");
+                sw.Write($"Total,{twelvthGradeTestResults.Count},,");
+                sw.Write($"Total,{testResults.Count}");
+                sw.WriteLine("");
+
+                // Write Averages
+                sw.Write($",,Average,{Math.Round(middleSchoolTestResults.Average(i => i.GetCorrectAnswers(key)), 1)},,");
+                sw.Write($"Average,{Math.Round(ninthGradeTestResults.Average(i => i.GetCorrectAnswers(key)), 1)},,");
+                sw.Write($"Average,{Math.Round(tenthGradeTestResults.Average(i => i.GetCorrectAnswers(key)), 1)},,");
+                sw.Write($"Average,{Math.Round(eleventhGradeTestResults.Average(i => i.GetCorrectAnswers(key)), 1)},,");
+                sw.Write($"Average,{Math.Round(twelvthGradeTestResults.Average(i => i.GetCorrectAnswers(key)), 1)},,");
+                sw.Write($"Average,{Math.Round(testResults.Average(i => i.GetCorrectAnswers(key)), 1)}");
+                sw.WriteLine("");
+
+                // Item Analysis
+                //Question	Correct	    Percent	    Correct
+                //Number	Responses	Correct	    Answer
+                sw.WriteLine("Question,Correct,Percent,Correct");
+                sw.WriteLine("Number,Responses,Correct,Answer");
+                for (var i = 0; i < 40; i++)
+                {
+                    var numberCorrect = testResults.Count(test => test.IsAnswerCorrect(key, i));
+                    var percentCorrect = ((decimal)numberCorrect / (decimal)testResults.Count).ToString("P1");
+                    sw.WriteLine($"{i + 1},{numberCorrect},{percentCorrect},{key.Answers[i]}");
                 }
             }
         }

@@ -18,14 +18,47 @@ namespace Medusa
         public static List<MedusaTest> ImportTestData()
         {
             List<MedusaTest> testResults = new List<MedusaTest>();
-            string line;
+            string currentLine;
             string school = string.Empty;
 
-            var file = new System.IO.StreamReader("./data/2018_TestResults.csv");
-            while ((line = file.ReadLine()) != null)
-            {
-                if (string.IsNullOrWhiteSpace(line)) continue;
+            var lines = new List<string>();
 
+            using (var file = new System.IO.StreamReader("./data/2018_TestResults.csv"))
+            {
+                while ((currentLine = file.ReadLine()) != null)
+                {
+                    if (string.IsNullOrWhiteSpace(currentLine)) continue;
+                    lines.Add(currentLine);
+                }
+
+            }
+
+            var convertedLines = new List<string>();
+            foreach (var line in lines)
+            {
+                var noQuoteLine = line;
+                var quoteIndex = noQuoteLine.IndexOf('"');
+
+                while (quoteIndex != -1)
+                {
+                    var nextQuote = noQuoteLine.IndexOf('"', quoteIndex + 1);
+
+                    var quoteSection = noQuoteLine.Substring(quoteIndex + 1, nextQuote - quoteIndex - 1)
+                        .Replace("(", "")
+                        .Replace(")", "")
+                        .Replace(",", "|");
+
+
+                    noQuoteLine = noQuoteLine.Substring(0, quoteIndex) + quoteSection + line.Substring(nextQuote + 1);
+                    quoteIndex = noQuoteLine.IndexOf('"');
+                }
+
+                convertedLines.Add(noQuoteLine.Replace("|", " AND "));
+            }
+
+
+            foreach (var line in convertedLines)
+            {
                 var split = line.Split(",").Select(i => i.Trim()).ToList();
                 testResults.Add(new MedusaTest(split));
             }
