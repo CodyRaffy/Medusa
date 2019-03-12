@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Medusa.Models;
+using Medusa.Reports;
 
 namespace Medusa
 {
     class Program
     {
         private static readonly string BaseReportPath = @"C:\Temp\\Medusa\";
-        private static readonly Dictionary<int, string> NationalAverage = new Dictionary<int, string>();
 
         static void Main(string[] args)
         {
@@ -18,46 +19,8 @@ namespace Medusa
             var testResults = DataImporter.ImportTestData();
 
             GenerateTestSummaryReport(key, testResults);
-            SetNationalAverages(testResults, key);
 
-            var schoolGroups = testResults.GroupBy(i => i.School);
-            foreach (var schoolGroup in schoolGroups)
-            {
-                GenerateSchoolReport(key, schoolGroup.Key, schoolGroup.ToList());
-            }
-        }
-
-        private static void SetNationalAverages(List<MedusaTest> testResults, MedusaKey key)
-        {
-            var gradeGroups = testResults.GroupBy(i => i.Grade);
-            foreach (var gradeGroup in gradeGroups)
-            {
-                NationalAverage.Add(gradeGroup.Key, gradeGroup.Average(i => i.GetCorrectAnswers(key)).ToString("F1"));
-            }
-        }
-
-        private static void GenerateSchoolReport(MedusaKey key, string school, List<MedusaTest> testResults)
-        {
-            var filename = $"{BaseReportPath}//{school}_MedusaReport.csv";
-
-            using (StreamWriter sw = new StreamWriter(filename))
-            {
-                // Header
-                sw.WriteLine("Student,Grade,Gender,Teacher,Raw Score,National Average,Award");
-
-                var sorted = testResults
-                    .OrderBy(i => i.Grade)
-                    .ThenBy(i => i.GetCorrectAnswers(key))
-                    .ThenBy(i => i.Name)
-                    .ToList();
-
-                foreach (var tr in sorted)
-                {
-                    var nationalAvg = NationalAverage[tr.Grade];
-                    string award = "N/A";
-                    sw.WriteLine($"{tr.Name},{tr.Grade},{tr.Gender},{tr.Teacher},{tr.GetCorrectAnswers(key)},{nationalAvg},{award}");
-                }
-            }
+            SchoolReport.GenerateSchoolReports(BaseReportPath, testResults, key);
         }
 
         private static void GenerateTestSummaryReport(MedusaKey key, List<MedusaTest> testResults)
@@ -66,9 +29,8 @@ namespace Medusa
 
             foreach (var person in perfecto)
             {
-                Console.WriteLine($"{person.Name} - {person.Gender} - {person.School}: {person.GetCorrectAnswers(key)} - Q9: {person.Answers[8]}");
+                Console.WriteLine($"{person.Name} - {person.Gender} - {person.School}: {person.GetCorrectAnswers(key)} - Q9: {person.Answers[8]} - Q30: {person.Answers[29]}");
             }
-
 
             var middleSchoolTestResults = testResults
                 .Where(i => i.Grade == 6 || i.Grade == 7 || i.Grade == 8)

@@ -1,4 +1,4 @@
-namespace Medusa
+namespace Medusa.Models
 {
 
     public class ReportItem

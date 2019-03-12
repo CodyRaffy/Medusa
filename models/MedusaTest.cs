@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Medusa
+namespace Medusa.Models
 {
     public class MedusaTest
     {
