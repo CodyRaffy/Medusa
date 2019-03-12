@@ -65,6 +65,7 @@ namespace Medusa.Reports
                     row++;
                 }
 
+                worksheet.Column(2).Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                 worksheet.Column(4).Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                 worksheet.Column(5).Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
 
