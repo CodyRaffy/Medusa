@@ -33,11 +33,13 @@ namespace Medusa.Reports
                 //Add the headers
                 worksheet.Cells[1, 1].Value = "Student";
                 worksheet.Cells[1, 2].Value = "Grade";
-                worksheet.Cells[1, 3].Value = "Gender";
-                worksheet.Cells[1, 4].Value = "Teacher";
-                worksheet.Cells[1, 5].Value = "Raw Score";
-                worksheet.Cells[1, 6].Value = "National Average";
-                worksheet.Cells[1, 7].Value = "Award";
+                //worksheet.Cells[1, 3].Value = "Gender";
+                worksheet.Cells[1, 3].Value = "Teacher";
+                worksheet.Cells[1, 4].Value = "Raw Score";
+                worksheet.Cells[1, 4].Style.WrapText = true;
+                worksheet.Cells[1, 5].Value = "National Average";
+                worksheet.Cells[1, 5].Style.WrapText = true;
+                worksheet.Cells[1, 6].Value = "Award";
 
                 //Add some items...
                 var sorted = testResults
@@ -49,21 +51,37 @@ namespace Medusa.Reports
                 var row = 2;
                 foreach (var tr in sorted)
                 {
+
                     var nationalAvg = NationalAverage[tr.Grade];
-                    string award = "N/A";
 
                     worksheet.Cells[$"A{row}"].Value = tr.Name;
                     worksheet.Cells[$"B{row}"].Value = tr.Grade;
-                    worksheet.Cells[$"C{row}"].Value = tr.Gender;
-                    worksheet.Cells[$"D{row}"].Value = tr.Teacher;
-                    worksheet.Cells[$"E{row}"].Value = tr.GetCorrectAnswers(key);
-                    worksheet.Cells[$"F{row}"].Value = nationalAvg;
-                    worksheet.Cells[$"G{row}"].Value = award;
+                    //worksheet.Cells[$"C{row}"].Value = tr.Gender;
+                    worksheet.Cells[$"C{row}"].Value = tr.Teacher;
+                    worksheet.Cells[$"D{row}"].Value = tr.GetCorrectAnswers(key);
+                    worksheet.Cells[$"E{row}"].Value = nationalAvg;
+                    worksheet.Cells[$"F{row}"].Value = tr.GetAward(key);
 
                     row++;
                 }
 
-                worksheet.Cells.AutoFitColumns(0);  //Autofit columns for all cells
+                worksheet.Column(4).Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                worksheet.Column(5).Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+
+                using (ExcelRange r = worksheet.Cells["A1:F1"])
+                {
+                    //r.Style.Font.SetFromFont(new Font("Britannic Bold", 22, FontStyle.Italic));
+                    r.Style.Font.Bold = true;
+                    r.Style.Font.Color.SetColor(Color.Black);
+                    r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.CenterContinuous;
+                    r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    r.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+                }
+
+                using (var r = worksheet.Cells[""])
+
+                    worksheet.Cells.AutoFitColumns(8);  //Autofit columns for all cells
 
                 // lets set the header text 
                 worksheet.HeaderFooter.OddHeader.CenteredText = $"&24&U&\"Arial,Regular Bold\" {school}";
@@ -75,7 +93,7 @@ namespace Medusa.Reports
                 // add the file path to the footer
                 //worksheet.HeaderFooter.OddFooter.LeftAlignedText = ExcelHeaderFooter.FileName;
 
-                worksheet.PrinterSettings.RepeatRows = worksheet.Cells["1:2"];
+                worksheet.PrinterSettings.RepeatRows = worksheet.Cells["1:1"];
                 worksheet.PrinterSettings.RepeatColumns = worksheet.Cells["A:G"];
 
                 // Change the sheet view to show it in page layout mode

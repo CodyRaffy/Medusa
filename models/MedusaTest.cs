@@ -5,6 +5,12 @@ namespace Medusa.Models
 {
     public class MedusaTest
     {
+        private const string Gold = "Gold Medal";
+        private const string Silver = "Silver Medal";
+        private const string Bronze = "Bronze Medal";
+        private const string Laurea = "Laurea Certificate";
+        private const string Olivae = "Olivae Certificate";
+
         public MedusaTest(List<string> inputLine)
         {
             Name = inputLine[0];
@@ -56,6 +62,48 @@ namespace Medusa.Models
                 }
             }
             return correct;
+        }
+
+        public string GetAward(MedusaKey key)
+        {
+            var correct = GetCorrectAnswers(key);
+            int[] orderedLevels;
+
+            switch (Grade)
+            {
+                case 6:
+                case 7:
+                case 8:
+                    orderedLevels = new int[] { 32, 29, 26, 22, 19 };
+                    return GetAwardForGroup(orderedLevels, correct);
+                default:
+                    return string.Empty;
+            }
+        }
+
+        private string GetAwardForGroup(int[] orderedLevels, int correct)
+        {
+            if (correct >= orderedLevels[0])
+            {
+                return Gold;
+            }
+            else if (correct >= orderedLevels[1])
+            {
+                return Silver;
+            }
+            else if (correct >= orderedLevels[2])
+            {
+                return Bronze;
+            }
+            else if (correct >= orderedLevels[3])
+            {
+                return Laurea;
+            }
+            else if (correct >= orderedLevels[4])
+            {
+                return Olivae;
+            }
+            else return string.Empty;
         }
 
         public bool IsAnswerCorrect(MedusaKey key, int questionIndex)
