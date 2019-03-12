@@ -6,11 +6,9 @@ using Medusa.Models;
 namespace Medusa.Reports
 {
 
-    public class SchoolReport
+    public class SchoolCsvReport : BaseSchoolReport
     {
-        private static readonly Dictionary<int, string> NationalAverage = new Dictionary<int, string>();
-
-        public static void GenerateSchoolReports(string baseReportPath, List<MedusaTest> testResults, MedusaKey key)
+        public override void GenerateSchoolReports(string baseReportPath, List<MedusaTest> testResults, MedusaKey key)
         {
             SetNationalAverages(testResults, key);
 
@@ -21,16 +19,7 @@ namespace Medusa.Reports
             }
         }
 
-        private static void SetNationalAverages(List<MedusaTest> testResults, MedusaKey key)
-        {
-            var gradeGroups = testResults.GroupBy(i => i.Grade);
-            foreach (var gradeGroup in gradeGroups)
-            {
-                NationalAverage.Add(gradeGroup.Key, gradeGroup.Average(i => i.GetCorrectAnswers(key)).ToString("F1"));
-            }
-        }
-
-        private static void GenerateSchoolReport(string baseReportPath, MedusaKey key, string school, List<MedusaTest> testResults)
+        private void GenerateSchoolReport(string baseReportPath, MedusaKey key, string school, List<MedusaTest> testResults)
         {
             var filename = $"{baseReportPath}//{school}_MedusaReport.csv";
 

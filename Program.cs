@@ -19,7 +19,10 @@ namespace Medusa
             var testResults = DataImporter.ImportTestData();
 
             SummaryReport.GenerateTestSummaryReport(BaseReportPath, key, testResults);
-            SchoolReport.GenerateSchoolReports(BaseReportPath, testResults, key);
+
+            //ISchoolReport schoolReport = new SchoolCsvReport();
+            ISchoolReport schoolReport = new SchoolExcelReport();
+            schoolReport.GenerateSchoolReports(BaseReportPath, testResults, key);
         }
     }
 }
