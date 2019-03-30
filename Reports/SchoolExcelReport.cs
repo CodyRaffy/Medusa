@@ -41,6 +41,16 @@ namespace Medusa.Reports
                 worksheet.Cells[1, 5].Style.WrapText = true;
                 worksheet.Cells[1, 6].Value = "Award";
 
+                // Put border after header row
+                worksheet.Cells["A1:F1"].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                worksheet.Cells["A1:F1"].Style.Border.Bottom.Color.SetColor(Color.Black);
+
+                // This is super slow but could not find a way to not show the excess columns without this
+                for (int i = 7; i <= 16384; i++)
+                {
+                    worksheet.Column(i).Hidden = true;
+                }
+
                 //Add some items...
                 var sorted = testResults
                    .OrderBy(i => i.Grade)
@@ -51,7 +61,6 @@ namespace Medusa.Reports
                 var row = 2;
                 foreach (var tr in sorted)
                 {
-
                     var nationalAvg = NationalAverage[tr.Grade];
 
                     worksheet.Cells[$"A{row}"].Value = tr.Name;
@@ -76,16 +85,31 @@ namespace Medusa.Reports
                     r.Style.Font.Bold = true;
                     r.Style.Font.Color.SetColor(Color.Black);
                     r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.CenterContinuous;
-                    r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                    r.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+                    //r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    //r.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
                 }
 
-                using (var r = worksheet.Cells[""])
+                worksheet.Cells.AutoFitColumns(8);  //Autofit columns for all cells
 
-                    worksheet.Cells.AutoFitColumns(8);  //Autofit columns for all cells
+                // Autofit fits with additional empty columns.  The following code uses the full width
+                var totalWidth = worksheet.Column(1).Width +
+                    worksheet.Column(2).Width +
+                    worksheet.Column(3).Width +
+                    worksheet.Column(4).Width +
+                    worksheet.Column(5).Width +
+                    worksheet.Column(6).Width;
+
+                var diff = 90 - totalWidth;
+                if (diff > 2)
+                {
+                    int additional = (int)diff / 2;
+                    // Split the available width between name and teacher column
+                    worksheet.Column(1).Width = worksheet.Column(1).Width + additional;
+                    worksheet.Column(3).Width = worksheet.Column(3).Width + additional;
+                }
 
                 // lets set the header text 
-                worksheet.HeaderFooter.OddHeader.CenteredText = $"&24&U&\"Arial,Regular Bold\" {school}";
+                worksheet.HeaderFooter.OddHeader.CenteredText = $"&24&\"Arial,Regular Bold\" {school}";
                 // add the page number to the footer plus the total number of pages
                 worksheet.HeaderFooter.OddFooter.RightAlignedText =
                     string.Format("Page {0} of {1}", ExcelHeaderFooter.PageNumber, ExcelHeaderFooter.NumberOfPages);
